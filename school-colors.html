@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What Color Is Class?</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --ink: #f2f0ea;
+      --ink-dim: #7a7a76;
+      --ink-faint: #3a3a37;
+      --dot: rgba(255, 255, 255, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-image: radial-gradient(var(--dot) 1.5px, transparent 1.5px);
+      background-size: 34px 34px;
+    }
+
+    .eyebrow {
+      padding: 28px 36px 0;
+      font-size: 11px;
+      letter-spacing: .18em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* top bar */
+    #bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      padding: 22px 24px 24px;
+      margin: 22px 24px 0;
+      border-bottom: 1px solid var(--ink-faint);
+    }
+
+    .bar-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: background .25s ease;
+    }
+
+    .bar-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .bar-card.active {
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .bar-card:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    .bar-name {
+      font-size: 10px;
+      letter-spacing: .09em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      transition: color .25s ease;
+    }
+
+    .bar-card.active .bar-name {
+      color: var(--ink);
+    }
+
+    .bar-minis {
+      display: flex;
+      width: 84px;
+      height: 16px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .bar-mini {
+      flex: 1 1 0;
+      height: 100%;
+      min-width: 0;
+    }
+
+    .bar-underline {
+      height: 2px;
+      width: 100%;
+      background: transparent;
+      border-radius: 2px;
+      margin-top: 2px;
+      transition: background .25s ease;
+    }
+
+    .bar-card.active .bar-underline {
+      background: var(--ink);
+    }
+
+    /* stage */
+    #stage {
+      min-height: 52vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 8vw 70px;
+      text-align: center;
+    }
+
+    .stage-eyebrow {
+      font-size: 11px;
+      letter-spacing: .2em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 18px;
+      transition: opacity .25s ease;
+    }
+
+    .stage-title {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      letter-spacing: -.01em;
+      text-transform: uppercase;
+      margin: 0 0 30px;
+      transition: opacity .25s ease;
+    }
+
+    .stage-hint {
+      font-size: 13px;
+      color: var(--ink-dim);
+      max-width: 420px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    #centerField {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      max-width: 820px;
+    }
+
+    .square-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9px;
+      width: 64px;
+    }
+
+    .square {
+      width: 64px;
+      height: 64px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .sq-label {
+      font-size: 10px;
+      letter-spacing: .1em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    #distChart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 14px;
+      max-width: 820px;
+      margin-top: 46px;
+      min-height: 150px;
+    }
+
+    .dist-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 38px;
+    }
+
+    .dist-count {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .dist-bar {
+      width: 100%;
+      height: 0px;
+      transition: height .55s cubic-bezier(.22, .61, .36, 1);
+    }
+
+    .dist-label {
+      font-size: 9px;
+      letter-spacing: .08em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 9px;
+      white-space: nowrap;
+    }
+
+    .sq-lang {
+      display: block;
+      color: var(--ink-faint);
+      font-size: 9px;
+      margin-top: 2px;
+    }
+
+    .ov-square {
+      width: 52px;
+      height: 52px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .ov-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9px;
+      width: 60px;
+    }
+
+    .ov-label {
+      font-size: 9px;
+      letter-spacing: .08em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .footnote {
+      margin-top: 30px;
+      max-width: 480px;
+      font-size: 12.5px;
+      color: var(--ink-faint);
+      text-align: center;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+
+    @media (max-width:640px) {
+      .square {
+        width: 48px;
+        height: 48px;
+      }
+
+      .square-wrap {
+        width: 48px;
+      }
+
+      #bar {
+        gap: 2px;
+        padding: 16px 10px 18px;
+      }
+
+      .bar-card {
+        padding: 8px 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="eyebrow">WHAT COLOR IS CLASS?</div>
+  <div id="bar"></div>
+  <div id="stage">
+    <div class="stage-eyebrow" id="stageEyebrow"></div>
+    <div class="stage-title" id="stageTitle" style="display:none;"></div>
+    <div id="centerField"></div>
+    <div id="distChart"></div>
+    <div class="footnote" id="stageFootnote"></div>
+  </div>
+
+  <script>
+    /* ---------- DATA ---------- */
+    const COLOR_MAP = {
+      yellow: "#F2CB4E", green: "#8DC17D", teal: "#4FB6AA", blue: "#3F6E95",
+      purple: "#8D79C4", pink: "#E8AED0", red: "#DA6461", orange: "#EDA24C",
+      brown: "#A47B57", black: "#333333", grey: "#8C8C8C", gray: "#8C8C8C", white: "#EDEAE2"
+    };
+    function colorHex(word) { return COLOR_MAP[(word || "").toLowerCase().trim()] || "#555555"; }
+
+    const RANK = { red: 0, orange: 1, yellow: 2, green: 3, teal: 4, blue: 5, purple: 6, pink: 7, brown: 8, black: 9, grey: 10, gray: 10, white: 11 };
+    function rankOf(color) { return RANK[(color || "").toLowerCase().trim()] ?? 99; }
+
+    const subjects = [
+      {
+        name: "English", responses: [
+          { color: "teal" }, 
+          { color: "red" }, 
+          { color: "yellow" },
+          { color: "green" }, 
+          { color: "yellow" }, 
+          { color: "blue" }, 
+          { color: "red" }, 
+          { color: "yellow" },
+          { color: "red" }, 
+          { color: "brown" }, 
+          { color: "yellow" },
+          { color: "green" },
+          { color: "yellow" },
+          { color: "red" },
+          { color: "black" },
+          { color: "blue" },
+          { color: "green" },
+          { color: "blue" },
+          { color: "red" },
+          { color: "purple" },
+          { color: "orange" },
+          { color: "orange" },
+          { color: "red" },
+          { color: "blue" },
+        ]
+      },
+      {
+        name: "2nd Language", responses: [
+          { color: "orange" },
+          { color: "white", lang: "Spanish" },
+          { color: "purple", lang: "Spanish" },
+          { color: "red", lang: "Spanish" },
+          { color: "red", lang: "Mandarin" },
+          { color: "red", lang: "French" },
+          { color: "yellow", lang: "French" },
+          { color: "red", lang: "Mandarin" },
+          { color: "grey"},
+          { color: "blue", lang: "Spanish" },
+          { color: "purple" },
+          { color: "yellow" },
+          { color: "red", lang: "Mandarin"},
+          { color: "grey" },
+          { color: "orange", lang: "Spanish" },
+          { color: "orange", lang: "Italian" },
+          { color: "red", lang: "French" },
+          { color: "brown", lang: "Malay" },
+          { color: "blue", lang: "Mandarin/Malay" },
+          { color: "yellow", lang: "Spanish" },
+          { color: "purple", lang: "Chinese" },
+          { color: "yellow", lang: "Spanish" },
+          { color: "white", lang: "French" },
+        ]
+        
+      },
+      // {
+      //   name: "Social Science", responses: [
+      //     { color: "brown", lang: "history" }, 
+      //     { color: "black", lang: "history" },  
+      //     { color: "red" , lang: "history" }, 
+      //     { color: "black", lang: "history" }, 
+      //     { color: "brown", lang: "history" },  
+      //     { color: "green", lang: "history" },  
+      //     { color: "yellow", lang: "history" }, 
+      //     { color: "orange", lang: "history" }, 
+      //     { color: "yellow", lang: "history" },  
+      //     { color: "purple", lang: "history" },  
+      //     { color: "red", lang: "history" }, 
+      //     { color: "red", lang: "history" }, 
+      //     { color: "brown", lang: "history" }, 
+      //     { color: "red", lang: "history" }, 
+      //     { color: "yellow", lang: "history" }, 
+      //     { color: "black", lang: "history" }, 
+      //     { color: "teal", lang: "history" }, 
+      //     { color: "yellow", lang: "history" }, 
+      //     { color: "orange", lang: "history" }, 
+
+      //     { color: "yellow", lang: "economics" }, 
+      //     { color: "yellow", lang: "economics" }, 
+      //     { color: "orange", lang: "economics" }, 
+      //     { color: "black", lang: "economics" },
+      //     { color: "brown", lang: "geography" },
+      //     { color: "orange", lang: "geography" },
+      //     { color: "orange", lang: "geography" },
+      //     { color: "green", lang: "geography" },
+      //     { color: "brown", lang: "geography" },
+      //     { color: "red", lang: "geography" },
+      //     { color: "teal", lang: "geography" },
+      //     { color: "orange", lang: "geography" },
+      //     { color: "white", lang: "philosophy" },
+      //     { color: "brown", lang: "philosophy" },
+      //     { color: "yellow", lang: "politics" }, 
+      //   ], footnote: "A few respondents split it further \u2014 middle-school geography orange, AP-level history red, economics yellow."
+      // },
+      {
+        name: "History", responses: [
+          { color: "brown" }, 
+          { color: "black" }, 
+          { color: "red" }, 
+          { color: "black" }, 
+          { color: "brown" }, 
+          { color: "green" }, 
+          { color: "yellow" },
+          { color: "orange" }, 
+          { color: "yellow" }, 
+          { color: "purple" }, 
+          { color: "red" },
+          { color: "red" },
+          { color: "brown" },
+          { color: "brown" },
+          { color: "red" },
+          { color: "yellow" },
+          { color: "black" },
+          { color: "teal" },
+          { color: "yellow" },
+          { color: "orange" },
+          { color: "brown" },
+          { color: "red" },
+          { color: "orange" },
+          { color: "black" },
+        ],
+      },
+      {
+        name: "Economics", responses: [
+          { color: "yellow" }, 
+          { color: "orange" }, 
+          { color: "black" },
+          { color: "yellow" },
+          { color: "grey" },
+          { color: "yellow" },
+          { color: "red" },
+        ], 
+      },
+      {
+        name: "Geography", responses: [
+          { color: "brown" }, 
+          { color: "orange" },
+          { color: "orange" },
+          { color: "green" },
+          { color: "red" },
+          { color: "teal" },
+          { color: "orange" },
+          { color: "brown" },
+          { color: "orange" },
+          { color: "green" },
+          { color: "green" },
+          { color: "teal" },
+          { color: "orange" },
+          { color: "brown" },
+        ], 
+      },
+      {
+        name: "Philosophy", responses: [
+          { color: "white" }, 
+          { color: "brown" }
+        ], 
+      },
+      {
+        name: "Math", responses: [
+          { color: "red" }, 
+          { color: "blue" }, 
+          { color: "blue" }, 
+          { color: "orange" }, 
+          { color: "teal" }, 
+          { color: "yellow" }, 
+          { color: "blue" }, 
+          { color: "red" },
+          { color: "blue" }, 
+          { color: "red" }, 
+          { color: "green" },
+          { color: "blue" },
+          { color: "blue" },
+          { color: "black" },
+          { color: "blue" },
+          { color: "red" },
+          { color: "red" },
+          { color: "green" },
+          { color: "blue" }, 
+          { color: "red" },
+          { color: "yellow" },
+          { color: "blue" },
+          { color: "blue" },
+          { color: "red" },
+        ]
+      },
+      {
+        name: "Science", responses: [
+          { color: "green" }, 
+          { color: "green" }, 
+          { color: "green" }, 
+          { color: "blue" }, 
+          { color: "green" }, 
+          { color: "teal" }, 
+          { color: "green" },
+          { color: "green" }, 
+          { color: "green" },
+          { color: "blue" }, 
+          { color: "blue" },
+          { color: "teal" },
+          { color: "green" },
+          { color: "blue" },
+          { color: "green" },
+          { color: "white" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+        ]
+      },
+      {
+        name: "Biology", responses: [
+          { color: "green" }, 
+          { color: "green" }, 
+          { color: "green" }, 
+          { color: "green" }, 
+          { color: "green" }, 
+          { color: "green" }, 
+          { color: "blue" },
+          { color: "blue" },
+          { color: "orange" },
+          { color: "blue" },
+          { color: "green" },
+          { color: "pink" },
+          { color: "green" },
+          { color: "orange" },
+          { color: "green" },
+          { color: "green" },
+          { color: "red" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+          { color: "green" },
+        ]
+      },
+      {
+        name: "Chemistry", responses: [
+          { color: "yellow" }, 
+          { color: "green" }, 
+          { color: "purple" }, 
+          { color: "blue" }, 
+          { color: "purple" }, 
+          { color: "orange" }, 
+          { color: "green" },
+          { color: "blue" }, 
+          { color: "purple" }, 
+          { color: "green" }, 
+          { color: "blue" },
+          { color: "orange" },
+          { color: "teal" },
+          { color: "yellow" },
+          { color: "black" },
+          { color: "green" },
+          { color: "pink" },
+          { color: "pink" },
+          { color: "green" },
+          { color: "pink" },
+          { color: "blue" },
+          { color: "yellow" },
+          { color: "green" },
+          { color: "green" },
+        ]
+      },
+      {
+        name: "Physics", responses: [
+          { color: "blue" }, 
+          { color: "green" }, 
+          { color: "red" }, 
+          { color: "blue" }, 
+          { color: "grey" }, 
+          { color: "black" },
+          { color: "yellow" }, 
+          { color: "blue" }, 
+          { color: "teal" }, 
+          { color: "red" },
+          { color: "grey" },
+          { color: "blue" },
+          { color: "black" },
+          { color: "green" },
+          { color: "green" },
+          { color: "blue" },
+          { color: "purple" },
+          { color: "blue" },
+          { color: "blue" },
+          { color: "purple" },
+          { color: "purple" },
+          { color: "green" },
+          { color: "grey" },
+        ]
+      },
+      {
+        name: "Art", responses: [
+          { color: "pink" }, 
+          { color: "red" }, 
+          { color: "red" }, 
+          { color: "white" }, 
+          { color: "orange" }, 
+          { color: "pink" },
+          { color: "red" }, 
+          { color: "pink" }, 
+          { color: "pink" }, 
+          { color: "orange" },
+          { color: "purple" },
+          { color: "white" },
+          { color: "purple" },
+          { color: "teal" },
+          { color: "white" },
+          { color: "purple" },
+          { color: "yellow" },
+          { color: "pink" },
+          { color: "yellow" },
+          { color: "purple" },
+          { color: "yellow" },
+        ]
+      },
+      {
+        name: "Music", responses: [
+          { color: "purple" }, 
+          { color: "black" }, 
+          { color: "blue" }, 
+          { color: "brown" }, 
+          { color: "blue" }, 
+          { color: "purple" }, 
+          { color: "purple" },
+          { color: "orange" }, 
+          { color: "black" },
+          { color: "orange" }, 
+          { color: "purple" },
+          { color: "orange" },
+          { color: "purple" },
+          { color: "purple" },
+          { color: "purple" },
+          { color: "purple" },
+          { color: "purple" },
+          { color: "purple" },
+          { color: "purple" },
+          { color: "brown" },
+          { color: "purple" },
+          { color: "pink" },
+          { color: "pink" },
+        ]
+      }
+    ];
+
+    function modeColors(responses) {
+      const counts = {};
+      responses.forEach(r => { counts[r.color] = (counts[r.color] || 0) + 1; });
+      const max = Math.max(...Object.values(counts));
+      return Object.keys(counts).filter(c => counts[c] === max);
+    }
+    subjects.forEach(s => {
+      s.winners = modeColors(s.responses);
+      s.sorted = [...s.responses].sort((a, b) => rankOf(a.color) - rankOf(b.color));
+    });
+
+    function multiColorSquare(colors, size) {
+      const sq = document.createElement('div');
+      sq.className = 'ov-square';
+      sq.style.width = size + 'px'; sq.style.height = size + 'px';
+      if (colors.length === 1) { sq.style.background = colorHex(colors[0]); }
+      else {
+        const step = 360 / colors.length;
+        const stops = colors.map((c, i) => `${colorHex(c)} ${i * step}deg ${(i + 1) * step}deg`).join(',');
+        sq.style.background = `conic-gradient(${stops})`;
+      }
+      return sq;
+    }
+
+    /* ---------- BUILD BAR ---------- */
+    const bar = document.getElementById('bar');
+    const miniSquareEls = []; // [subjectIdx] -> array of mini square elements, aligned with s.sorted
+
+    subjects.forEach((s, idx) => {
+      const card = document.createElement('button');
+      card.className = 'bar-card';
+      card.setAttribute('aria-label', s.name);
+
+      const name = document.createElement('div'); name.className = 'bar-name'; name.textContent = s.name;
+      const minis = document.createElement('div'); minis.className = 'bar-minis';
+      const minisArr = [];
+      s.sorted.forEach(r => {
+        const m = document.createElement('div'); m.className = 'bar-mini';
+        m.style.background = colorHex(r.color);
+        minis.appendChild(m);
+        minisArr.push(m);
+      });
+      miniSquareEls.push(minisArr);
+      const underline = document.createElement('div'); underline.className = 'bar-underline';
+
+      card.appendChild(name); card.appendChild(minis); card.appendChild(underline);
+      card.addEventListener('click', () => handleSelect(idx));
+      bar.appendChild(card);
+    });
+
+    /* ---------- STAGE ---------- */
+    const stageEyebrow = document.getElementById('stageEyebrow');
+    const stageTitle = document.getElementById('stageTitle');
+    const centerField = document.getElementById('centerField');
+    const distChart = document.getElementById('distChart');
+    const stageFootnote = document.getElementById('stageFootnote');
+
+    let activeSubject = null;
+    let busy = false;
+
+    function setBarActive(idx) {
+      [...bar.children].forEach((card, i) => card.classList.toggle('active', i === idx));
+    }
+
+    function clearCenter(cb) {
+      const kids = [...centerField.children];
+      const chartKids = [...distChart.children];
+      chartKids.forEach(el => {
+        el.style.transition = 'opacity .18s ease';
+        el.style.opacity = '0';
+      });
+      if (!kids.length) {
+        setTimeout(() => { distChart.innerHTML = ''; cb(); }, chartKids.length ? 180 : 0);
+        return;
+      }
+      kids.forEach(el => {
+        el.style.transition = 'opacity .22s ease, transform .22s ease';
+        el.style.opacity = '0';
+        el.style.transform = 'scale(.7)';
+      });
+      setTimeout(() => { centerField.innerHTML = ''; distChart.innerHTML = ''; cb(); }, 230);
+    }
+
+    function showOverview() {
+      stageEyebrow.style.opacity = '0';
+      stageTitle.style.opacity = '0';
+      setTimeout(() => {
+        stageEyebrow.textContent = 'MAJORITY WINNER';
+        stageTitle.style.display = 'none';
+        stageFootnote.textContent = '';
+        stageEyebrow.style.opacity = '1';
+
+        subjects.forEach((s, i) => {
+          const item = document.createElement('div'); item.className = 'ov-item';
+          item.style.opacity = '0';
+          item.style.transform = 'scale(.85)';
+          item.style.transition = `opacity .4s ease ${i * 35}ms, transform .4s ease ${i * 35}ms`;
+          const sq = multiColorSquare(s.winners, 52);
+          const lab = document.createElement('div'); lab.className = 'ov-label'; lab.textContent = s.name;
+          item.appendChild(sq); item.appendChild(lab);
+          centerField.appendChild(item);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => { item.style.opacity = '1'; item.style.transform = 'scale(1)'; });
+          });
+        });
+      }, 180);
+    }
+
+    function showSubjectDetail(idx) {
+      const s = subjects[idx];
+      stageEyebrow.style.opacity = '0';
+      stageTitle.style.opacity = '0';
+      setTimeout(() => {
+        stageEyebrow.textContent = `${s.sorted.length} RESPONSE${s.sorted.length === 1 ? '' : 'S'}`;
+        stageTitle.textContent = s.name.toUpperCase();
+        stageTitle.style.display = 'block';
+        stageFootnote.textContent = s.footnote || '';
+        stageEyebrow.style.opacity = '1';
+        stageTitle.style.opacity = '1';
+      }, 180);
+
+      // build big squares first (invisible) to measure their natural flex position
+      const wraps = s.sorted.map(r => {
+        const wrap = document.createElement('div'); wrap.className = 'square-wrap';
+        const sq = document.createElement('div'); sq.className = 'square';
+        sq.style.background = colorHex(r.color);
+        const lab = document.createElement('div'); lab.className = 'sq-label';
+        lab.textContent = r.color;
+        if (r.lang) {
+          const span = document.createElement('span'); span.className = 'sq-lang'; span.textContent = r.lang;
+          lab.appendChild(span);
+        }
+        wrap.appendChild(sq); wrap.appendChild(lab);
+        centerField.appendChild(wrap);
+        return { wrap, sq, lab };
+      });
+
+      const minis = miniSquareEls[idx];
+      // measure LAST rects, then set inverted starting transform
+      wraps.forEach(({ sq, lab }, i) => {
+        const last = sq.getBoundingClientRect();
+        const firstEl = minis[i];
+        const first = firstEl ? firstEl.getBoundingClientRect() : last;
+        const dx = (first.left + first.width / 2) - (last.left + last.width / 2);
+        const dy = (first.top + first.height / 2) - (last.top + last.height / 2);
+        const scale = Math.max(first.width / last.width, 0.12);
+        sq.style.transition = 'none';
+        sq.style.transformOrigin = 'center center';
+        sq.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+        sq.style.opacity = '0.35';
+        lab.style.transition = 'none';
+        lab.style.opacity = '0';
+      });
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          wraps.forEach(({ sq, lab }, i) => {
+            sq.style.transition = `transform .55s cubic-bezier(.22,.61,.36,1) ${i * 40}ms, opacity .4s ease ${i * 40}ms`;
+            sq.style.transform = 'translate(0,0) scale(1)';
+            sq.style.opacity = '1';
+            lab.style.transition = `opacity .4s ease ${i * 40 + 180}ms`;
+            lab.style.opacity = '1';
+          });
+        });
+      });
+
+      const counts = {};
+      s.sorted.forEach(r => { counts[r.color] = (counts[r.color] || 0) + 1; });
+      const colorsInOrder = Object.keys(counts).sort((a, b) => rankOf(a) - rankOf(b));
+      buildDistChart(s, counts, colorsInOrder, wraps.length * 40 + 250);
+    }
+
+    const MAX_BAR_HEIGHT = 130;
+    function buildDistChart(s, counts, colorsInOrder, startDelay) {
+      const maxCount = Math.max(...colorsInOrder.map(c => counts[c]));
+
+      const cols = colorsInOrder.map(color => {
+        const count = counts[color];
+        const col = document.createElement('div'); col.className = 'dist-col';
+        const num = document.createElement('div'); num.className = 'dist-count';
+        num.textContent = count; num.style.opacity = '0';
+        const bar = document.createElement('div'); bar.className = 'dist-bar';
+        bar.style.background = colorHex(color);
+        bar.style.transition = 'none';
+        bar.style.height = '0px';
+        const lab = document.createElement('div'); lab.className = 'dist-label'; lab.textContent = color;
+        lab.style.opacity = '0';
+        col.appendChild(num); col.appendChild(bar); col.appendChild(lab);
+        distChart.appendChild(col);
+        return { bar, num, lab, targetHeight: Math.max((count / maxCount) * MAX_BAR_HEIGHT, 6) };
+      });
+
+      setTimeout(() => {
+        cols.forEach(({ bar, num, lab, targetHeight }, i) => {
+          bar.style.transition = `height .5s cubic-bezier(.22,.61,.36,1) ${i * 45}ms`;
+          bar.style.height = targetHeight + 'px';
+          num.style.transition = `opacity .35s ease ${i * 45 + 250}ms`;
+          num.style.opacity = '1';
+          lab.style.transition = `opacity .35s ease ${i * 45 + 250}ms`;
+          lab.style.opacity = '1';
+        });
+      }, startDelay);
+    }
+
+    function handleSelect(idx) {
+      if (busy) return;
+      busy = true;
+
+      if (activeSubject === idx) {
+        // deselect -> back to overview
+        activeSubject = null;
+        setBarActive(-1);
+        clearCenter(() => { showOverview(); busy = false; });
+        return;
+      }
+
+      activeSubject = idx;
+      setBarActive(idx);
+      clearCenter(() => {
+        showSubjectDetail(idx);
+        setTimeout(() => { busy = false; }, 500);
+      });
+    }
+
+    // init
+    showOverview();
+  </script>
+</body>
+
+</html>
