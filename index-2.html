@@ -291,25 +291,6 @@
       .bar-card {
         padding: 8px 8px;
       }
-
-      #distChart {
-        flex-wrap: wrap;
-        gap: 10px 10px;
-        row-gap: 22px;
-        min-height: 0;
-      }
-
-      .dist-col {
-        width: 30px;
-      }
-
-      .dist-count {
-        font-size: 10px;
-      }
-
-      .dist-label {
-        font-size: 8px;
-      }
     }
   </style>
 </head>
@@ -859,7 +840,7 @@
       buildDistChart(s, counts, colorsInOrder, wraps.length * 40 + 250);
     }
 
-    function getMaxBarHeight() { return window.innerWidth <= 640 ? 84 : 130; }
+    const MAX_BAR_HEIGHT = 130;
     function buildDistChart(s, counts, colorsInOrder, startDelay) {
       const maxCount = Math.max(...colorsInOrder.map(c => counts[c]));
 
@@ -876,7 +857,7 @@
         lab.style.opacity = '0';
         col.appendChild(num); col.appendChild(bar); col.appendChild(lab);
         distChart.appendChild(col);
-        return { bar, num, lab, targetHeight: Math.max((count / maxCount) * getMaxBarHeight(), 6) };
+        return { bar, num, lab, targetHeight: Math.max((count / maxCount) * MAX_BAR_HEIGHT, 6) };
       });
 
       setTimeout(() => {
