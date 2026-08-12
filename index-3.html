@@ -121,12 +121,12 @@
 
     /* stage */
     #stage {
-      min-height: 0;
+      min-height: 52vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      padding: 46px 8vw 80px;
+      justify-content: center;
+      padding: 50px 8vw 70px;
       text-align: center;
     }
 
@@ -163,7 +163,6 @@
       justify-content: center;
       gap: 16px;
       max-width: 820px;
-      margin-top: 36px;
     }
 
     .square-wrap {
@@ -195,12 +194,8 @@
       justify-content: center;
       gap: 14px;
       max-width: 820px;
-      margin-top: 14px;
-      cursor: pointer;
-    }
-
-    #distChart:hover .dist-bar {
-      filter: brightness(1.12);
+      margin-top: 46px;
+      min-height: 150px;
     }
 
     .dist-col {
@@ -297,45 +292,23 @@
         padding: 8px 8px;
       }
 
-      #distChart.horiz {
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 9px;
-        width: 100%;
-        max-width: 300px;
+      #distChart {
+        flex-wrap: wrap;
+        gap: 10px 10px;
+        row-gap: 22px;
+        min-height: 0;
       }
 
-      .dist-col.horiz-row {
-        flex-direction: row;
-        align-items: center;
-        gap: 9px;
-        width: 100%;
+      .dist-col {
+        width: 30px;
       }
 
-      .dist-col.horiz-row .dist-label {
-        order: 1;
-        width: 56px;
-        flex-shrink: 0;
-        text-align: right;
-        margin-top: 0;
-        font-size: 9px;
-      }
-
-      .dist-col.horiz-row .dist-bar {
-        order: 2;
-        width: 0px;
-        height: 14px;
-        flex: none;
-      }
-
-      .dist-col.horiz-row .dist-count {
-        order: 3;
-        width: 20px;
-        flex-shrink: 0;
-        text-align: left;
-        margin-bottom: 0;
+      .dist-count {
         font-size: 10px;
+      }
+
+      .dist-label {
+        font-size: 8px;
       }
     }
   </style>
@@ -347,8 +320,8 @@
   <div id="stage">
     <div class="stage-eyebrow" id="stageEyebrow"></div>
     <div class="stage-title" id="stageTitle" style="display:none;"></div>
-    <div id="distChart"></div>
     <div id="centerField"></div>
+    <div id="distChart"></div>
     <div class="footnote" id="stageFootnote"></div>
   </div>
 
@@ -773,8 +746,6 @@
 
     let activeSubject = null;
     let busy = false;
-    let squaresShown = false;
-    let currentChartBarEls = {};
 
     function setBarActive(idx) {
       [...bar.children].forEach((card, i) => card.classList.toggle('active', i === idx));
@@ -787,11 +758,8 @@
         el.style.transition = 'opacity .18s ease';
         el.style.opacity = '0';
       });
-      squaresShown = false;
-      currentChartBarEls = {};
-      distChart.classList.remove('horiz');
       if (!kids.length) {
-        setTimeout(() => { distChart.innerHTML = ''; distChart.style.minHeight = ''; cb(); }, chartKids.length ? 180 : 0);
+        setTimeout(() => { distChart.innerHTML = ''; cb(); }, chartKids.length ? 180 : 0);
         return;
       }
       kids.forEach(el => {
@@ -799,7 +767,7 @@
         el.style.opacity = '0';
         el.style.transform = 'scale(.7)';
       });
-      setTimeout(() => { centerField.innerHTML = ''; distChart.innerHTML = ''; distChart.style.minHeight = ''; cb(); }, 230);
+      setTimeout(() => { centerField.innerHTML = ''; distChart.innerHTML = ''; cb(); }, 230);
     }
 
     function showOverview() {
@@ -827,12 +795,12 @@
       }, 180);
     }
 
-    function showSubjectChart(idx) {
+    function showSubjectDetail(idx) {
       const s = subjects[idx];
       stageEyebrow.style.opacity = '0';
       stageTitle.style.opacity = '0';
       setTimeout(() => {
-        stageEyebrow.textContent = `${s.sorted.length} RESPONSE${s.sorted.length === 1 ? '' : 'S'} \u2014 CLICK CHART TO SEE EACH ONE`;
+        stageEyebrow.textContent = `${s.sorted.length} RESPONSE${s.sorted.length === 1 ? '' : 'S'}`;
         stageTitle.textContent = s.name.toUpperCase();
         stageTitle.style.display = 'block';
         stageFootnote.textContent = s.footnote || '';
@@ -840,19 +808,7 @@
         stageTitle.style.opacity = '1';
       }, 180);
 
-      const counts = {};
-      s.sorted.forEach(r => { counts[r.color] = (counts[r.color] || 0) + 1; });
-      const colorsInOrder = Object.keys(counts).sort((a, b) => rankOf(a) - rankOf(b));
-      currentChartBarEls = buildDistChart(s, counts, colorsInOrder, 180);
-      squaresShown = false;
-    }
-
-    function expandSquares(idx) {
-      if (squaresShown || busy) return;
-      busy = true;
-      squaresShown = true;
-      const s = subjects[idx];
-
+      // build big squares first (invisible) to measure their natural flex position
       const wraps = s.sorted.map(r => {
         const wrap = document.createElement('div'); wrap.className = 'square-wrap';
         const sq = document.createElement('div'); sq.className = 'square';
@@ -865,13 +821,15 @@
         }
         wrap.appendChild(sq); wrap.appendChild(lab);
         centerField.appendChild(wrap);
-        return { wrap, sq, lab, color: r.color };
+        return { wrap, sq, lab };
       });
 
-      wraps.forEach(({ sq, lab, color }, i) => {
+      const minis = miniSquareEls[idx];
+      // measure LAST rects, then set inverted starting transform
+      wraps.forEach(({ sq, lab }, i) => {
         const last = sq.getBoundingClientRect();
-        const originEl = currentChartBarEls[color];
-        const first = originEl ? originEl.getBoundingClientRect() : last;
+        const firstEl = minis[i];
+        const first = firstEl ? firstEl.getBoundingClientRect() : last;
         const dx = (first.left + first.width / 2) - (last.left + last.width / 2);
         const dy = (first.top + first.height / 2) - (last.top + last.height / 2);
         const scale = Math.max(first.width / last.width, 0.12);
@@ -886,84 +844,51 @@
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           wraps.forEach(({ sq, lab }, i) => {
-            sq.style.transition = `transform .55s cubic-bezier(.22,.61,.36,1) ${i * 30}ms, opacity .4s ease ${i * 30}ms`;
+            sq.style.transition = `transform .55s cubic-bezier(.22,.61,.36,1) ${i * 40}ms, opacity .4s ease ${i * 40}ms`;
             sq.style.transform = 'translate(0,0) scale(1)';
             sq.style.opacity = '1';
-            lab.style.transition = `opacity .4s ease ${i * 30 + 180}ms`;
+            lab.style.transition = `opacity .4s ease ${i * 40 + 180}ms`;
             lab.style.opacity = '1';
           });
         });
       });
 
-      setTimeout(() => { busy = false; }, wraps.length * 30 + 600);
+      const counts = {};
+      s.sorted.forEach(r => { counts[r.color] = (counts[r.color] || 0) + 1; });
+      const colorsInOrder = Object.keys(counts).sort((a, b) => rankOf(a) - rankOf(b));
+      buildDistChart(s, counts, colorsInOrder, wraps.length * 40 + 250);
     }
-
-    function collapseSquares() {
-      if (!squaresShown || busy) return;
-      busy = true;
-      const kids = [...centerField.children];
-      kids.forEach(el => {
-        el.style.transition = 'opacity .2s ease, transform .2s ease';
-        el.style.opacity = '0';
-        el.style.transform = 'scale(.7)';
-      });
-      setTimeout(() => {
-        centerField.innerHTML = '';
-        squaresShown = false;
-        busy = false;
-      }, 210);
-    }
-
-    distChart.addEventListener('click', () => {
-      if (activeSubject === null) return;
-      if (squaresShown) collapseSquares(); else expandSquares(activeSubject);
-    });
 
     function getMaxBarHeight() { return window.innerWidth <= 640 ? 84 : 130; }
     function buildDistChart(s, counts, colorsInOrder, startDelay) {
       const maxCount = Math.max(...colorsInOrder.map(c => counts[c]));
-      const horizontal = window.innerWidth <= 640;
-      distChart.classList.toggle('horiz', horizontal);
-      const maxExtent = horizontal ? 110 : getMaxBarHeight();
-      distChart.style.minHeight = horizontal ? '' : (getMaxBarHeight() + 42) + 'px';
-      const barMap = {};
 
       const cols = colorsInOrder.map(color => {
         const count = counts[color];
-        const col = document.createElement('div');
-        col.className = 'dist-col' + (horizontal ? ' horiz-row' : '');
+        const col = document.createElement('div'); col.className = 'dist-col';
         const num = document.createElement('div'); num.className = 'dist-count';
         num.textContent = count; num.style.opacity = '0';
         const bar = document.createElement('div'); bar.className = 'dist-bar';
         bar.style.background = colorHex(color);
         bar.style.transition = 'none';
-        if (horizontal) { bar.style.width = '0px'; bar.style.height = ''; }
-        else { bar.style.height = '0px'; bar.style.width = ''; }
+        bar.style.height = '0px';
         const lab = document.createElement('div'); lab.className = 'dist-label'; lab.textContent = color;
         lab.style.opacity = '0';
         col.appendChild(num); col.appendChild(bar); col.appendChild(lab);
         distChart.appendChild(col);
-        barMap[color] = bar;
-        return { bar, num, lab, targetExtent: Math.max((count / maxCount) * maxExtent, 6) };
+        return { bar, num, lab, targetHeight: Math.max((count / maxCount) * getMaxBarHeight(), 6) };
       });
 
       setTimeout(() => {
-        cols.forEach(({ bar, num, lab, targetExtent }, i) => {
-          if (horizontal) {
-            bar.style.transition = `width .5s cubic-bezier(.22,.61,.36,1) ${i * 45}ms`;
-            bar.style.width = targetExtent + 'px';
-          } else {
-            bar.style.transition = `height .5s cubic-bezier(.22,.61,.36,1) ${i * 45}ms`;
-            bar.style.height = targetExtent + 'px';
-          }
+        cols.forEach(({ bar, num, lab, targetHeight }, i) => {
+          bar.style.transition = `height .5s cubic-bezier(.22,.61,.36,1) ${i * 45}ms`;
+          bar.style.height = targetHeight + 'px';
           num.style.transition = `opacity .35s ease ${i * 45 + 250}ms`;
           num.style.opacity = '1';
           lab.style.transition = `opacity .35s ease ${i * 45 + 250}ms`;
           lab.style.opacity = '1';
         });
       }, startDelay);
-
-      return barMap;
     }
 
     function handleSelect(idx) {
@@ -981,7 +906,7 @@
       activeSubject = idx;
       setBarActive(idx);
       clearCenter(() => {
-        showSubjectChart(idx);
+        showSubjectDetail(idx);
         setTimeout(() => { busy = false; }, 500);
       });
     }
